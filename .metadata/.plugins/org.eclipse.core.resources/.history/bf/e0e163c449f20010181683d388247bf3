@@ -1,0 +1,105 @@
+package com.blog.service.impl;
+
+import com.blog.config.JwtTokenProvider;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.blog.dto.request.LoginRequest;
+import com.blog.dto.request.RegisterRequest;
+import com.blog.dto.response.JwtAuthResponse;
+import com.blog.dto.response.UserResponse;
+import com.blog.entity.RefreshToken;
+import com.blog.entity.Role;
+import com.blog.entity.User;
+import com.blog.repository.RefreshTokenRepository;
+import com.blog.repository.RoleRepository;
+import com.blog.repository.UserRepository;
+import com.blog.service.AuthService;
+import com.blog.service.RefreshTokenService;
+import com.blog.util.AppConstants;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+
+import java.util.Set;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AuthServiceImpl implements AuthService {
+
+    private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenService refreshTokenService;
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
+
+    @Override
+    public UserResponse register(RegisterRequest request) {
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already registered");
+        }
+
+        Role userRole = roleRepository.findByName(AppConstants.ROLE_USER)
+                .orElseThrow(() -> new RuntimeException("ROLE_USER not found"));
+
+        User user = User.builder()
+                .name(request.getName())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .roles(Set.of(userRole))
+                .build();
+
+        User savedUser = userRepository.save(user);
+
+        return UserResponse.builder()
+                .id(savedUser.getId())
+                .name(savedUser.getName())
+                .email(savedUser.getEmail())
+                .roles(
+                        savedUser.getRoles()
+                                .stream()
+                                .map(Role::getName)
+                                .collect(Collectors.toSet())
+                )
+                .build();
+    }
+
+    @Override
+    @Transactional
+    public JwtAuthResponse login(LoginRequest request) {
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getEmail(),
+                        request.getPassword()
+                )
+        );
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // 🔥 FIX 1: Use instance method, not static
+        refreshTokenService.deleteByUserId(user.getId());
+
+        // Generate JWT
+        String token = jwtTokenProvider.generateToken(authentication);
+
+        // 🔥 FIX 2: Pass userId, not User
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user.getId());
+
+        return JwtAuthResponse.builder()
+                .userId(user.getId())
+                .roles(user.getRoles().stream().map(Role::getName).collect(Collectors.toSet()))
+                .token(token)
+                .refreshToken(refreshToken.getToken())
+                .build();
+    }
+}

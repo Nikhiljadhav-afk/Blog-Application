@@ -1,0 +1,72 @@
+
+<div class="post-detail-container">
+  <button class="back-button" (click)="goBack()">← Back to Home</button>
+  <button class="edit-button" (click)="editPost()" *ngIf="canEdit">✏️ Edit Post</button>
+
+  <div *ngIf="loading" class="loading">
+    <p>Loading post...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!loading && !error && post">
+    <article class="post-article">
+      <header class="post-header">
+        <h1 class="post-title">{{ post.title }}</h1>
+        <div class="post-meta">
+          <span class="author">By {{ post.authorName }}</span>
+          <span class="category">{{ post.categoryName }}</span>
+          <span class="likes">❤️ {{ likesCount }} likes</span>
+        </div>
+      </header>
+
+      <div class="post-image" *ngIf="post.imageUrl">
+        <img [src]="post.imageUrl" [alt]="post.title" />
+      </div>
+
+      <div class="post-content" markdown [data]="post.content"></div>
+    </article>
+
+    <section class="comments-section">
+      <h2>Comments ({{ comments.length }})</h2>
+      <div *ngIf="comments.length === 0" class="no-comments">
+        <p>No comments yet.</p>
+      </div>
+      <div class="comments-list">
+        <div *ngFor="let comment of comments" class="comment">
+          <div class="comment-author">{{ comment.userName }}</div>
+          <div class="comment-content">{{ comment.content }}</div>
+          <div class="comment-date">{{ comment.createdAt | date:'short' }}</div>
+          <div *ngIf="comment.replies && comment.replies.length > 0" class="replies">
+            <div *ngFor="let reply of comment.replies" class="reply">
+              <div class="reply-author">{{ reply.userName }}</div>
+              <div class="reply-content">{{ reply.content }}</div>
+              <div class="reply-date">{{ reply.createdAt | date:'short' }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="more-posts-section" *ngIf="morePosts.length > 0">
+      <h2>More Posts</h2>
+      <div class="more-posts-grid">
+        <div *ngFor="let morePost of morePosts" class="more-post-card" (click)="viewPost(morePost.id)">
+          <div class="more-post-image" *ngIf="morePost.imageUrl">
+            <img [src]="morePost.imageUrl" [alt]="morePost.title" />
+          </div>
+          <div class="more-post-content">
+            <h3 class="more-post-title">{{ morePost.title }}</h3>
+            <p class="more-post-excerpt">{{ morePost.content | slice:0:100 }}...</p>
+            <div class="more-post-meta">
+              <span class="author">By {{ morePost.authorName }}</span>
+              <span class="category">{{ morePost.categoryName }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>

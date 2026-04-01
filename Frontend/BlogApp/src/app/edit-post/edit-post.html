@@ -1,0 +1,130 @@
+<div class="edit-post-container" *ngIf="!loading">
+  <div class="form-card">
+    <h1 class="title">Edit Post</h1>
+    <p class="subtitle">Update your post content</p>
+
+    <div *ngIf="!canEdit" class="permission-error">
+      <p>You do not have permission to edit this post.</p>
+      <button class="btn btn-secondary" (click)="goBack()">Go Back</button>
+    </div>
+
+    <form [formGroup]="postForm" (ngSubmit)="onSubmit()" class="post-form" *ngIf="canEdit">
+      <!-- Title Field -->
+      <div class="form-group">
+        <label for="title" class="form-label">Title</label>
+        <input
+          type="text"
+          id="title"
+          formControlName="title"
+          class="form-input"
+          placeholder="Enter an engaging title"
+        />
+        <div *ngIf="postForm.get('title')?.invalid && postForm.get('title')?.touched" class="error-message">
+          Title is required and must be at least 5 characters.
+        </div>
+      </div>
+
+      <div class="markdown-help">
+        <h4>Markdown Formatting Guide:</h4>
+        <ul>
+          <li><strong>Headings:</strong> # for main title, ## for subtitles, ### for sections</li>
+          <li><strong>Bold:</strong> **text**, __text__, or ***text***</li>
+          <li><strong>Italic:</strong> *text* or _text_</li>
+          <li><strong>Lists:</strong> - or * for bullet points, 1. for numbered lists</li>
+          <li><strong>Links:</strong> [text](url)</li>
+          <li><strong>Code:</strong> `code` for inline, ```code``` for blocks</li>
+          <li><strong>Horizontal lines:</strong> --- or *** or ___</li>
+          <li><strong>Line breaks:</strong> Add two spaces at end of line or use blank lines between paragraphs</li>
+        </ul>
+      </div>
+
+      <!-- Content Field -->
+      <div class="form-group">
+        <label for="content" class="form-label">Content (Markdown supported)</label>
+        <textarea
+          id="content"
+          formControlName="content"
+          class="form-textarea"
+          placeholder="Write your post content here... Use Markdown for formatting: ## for subtitles, blank lines for paragraphs."
+          rows="8"
+        ></textarea>
+        <div *ngIf="postForm.get('content')?.invalid && postForm.get('content')?.touched" class="error-message">
+          Content is required and must be at least 10 characters.
+        </div>
+      </div>
+
+      <!-- Markdown Preview -->
+      <div class="form-group" *ngIf="postForm.get('content')?.value">
+        <label class="form-label">Preview</label>
+        <div class="markdown-preview">
+          <markdown [data]="postForm.get('content')?.value"></markdown>
+        </div>
+      </div>
+
+      <!-- Image URL Field -->
+      <div class="form-group">
+        <label for="imageUrl" class="form-label">Image URL</label>
+        <input
+          type="url"
+          id="imageUrl"
+          formControlName="imageUrl"
+          class="form-input"
+          placeholder="https://example.com/image.jpg"
+        />
+        <div *ngIf="postForm.get('imageUrl')?.invalid && postForm.get('imageUrl')?.touched" class="error-message">
+          Please enter a valid URL starting with http:// or https://
+        </div>
+      </div>
+
+      <!-- Published Checkbox -->
+      <div class="form-group checkbox-group">
+        <label class="checkbox-label">
+          <input
+            type="checkbox"
+            formControlName="published"
+            class="checkbox-input"
+          />
+          <span class="checkmark"></span>
+          Publish immediately
+        </label>
+      </div>
+
+      <!-- Category ID Field -->
+      <div class="form-group">
+        <label for="categoryId" class="form-label">Category ID</label>
+        <input
+          type="number"
+          id="categoryId"
+          formControlName="categoryId"
+          class="form-input"
+          placeholder="0"
+          min="0"
+        />
+        <div *ngIf="postForm.get('categoryId')?.invalid && postForm.get('categoryId')?.touched" class="error-message">
+          Category ID is required and must be a non-negative number.
+        </div>
+      </div>
+
+      <!-- Error and Success Messages -->
+      <div *ngIf="error" class="alert alert-error">{{ error }}</div>
+      <div *ngIf="success" class="alert alert-success">{{ success }}</div>
+
+      <!-- Buttons -->
+      <div class="button-group">
+        <button type="button" class="btn btn-secondary" (click)="goBack()">Cancel</button>
+        <button type="submit" class="btn btn-primary" [disabled]="saving">
+          <span *ngIf="saving" class="spinner"></span>
+          {{ saving ? 'Updating...' : 'Update Post' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div *ngIf="loading" class="loading">
+  <p>Loading post...</p>
+</div>
+
+<div *ngIf="error && !canEdit" class="error">
+  <p>{{ error }}</p>
+</div>

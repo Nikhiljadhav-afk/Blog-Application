@@ -1,0 +1,71 @@
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <h1 *ngIf="!isAdmin">My Dashboard</h1>
+    <h1 *ngIf="isAdmin">Admin Dashboard</h1>
+    <button class="home-button" (click)="goHome()">← Back to Home</button>
+  </header>
+
+  <div *ngIf="loading" class="loading">
+    <p *ngIf="!isAdmin">Loading your posts...</p>
+    <p *ngIf="isAdmin">Loading users...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Regular User Dashboard -->
+  <div *ngIf="!loading && !error && !isAdmin" class="posts-section">
+    <h2>Your Posts</h2>
+
+    <div *ngIf="posts.length === 0" class="no-posts">
+      <p>You haven't created any posts yet.</p>
+    </div>
+
+    <div *ngFor="let post of posts" class="post-card">
+      <div class="post-image" *ngIf="post.imageUrl">
+        <img [src]="post.imageUrl" [alt]="post.title" />
+      </div>
+      <div class="post-content">
+        <h3 class="post-title">{{ post.title }}</h3>
+        <p class="post-excerpt">{{ post.content | slice:0:150 }}...</p>
+        <div class="post-meta">
+          <span class="category">{{ post.categoryName }}</span>
+          <span class="comments">Comments: {{ post.commentCount }}</span>
+          <span class="status" [class.published]="post.published" [class.draft]="!post.published">
+            {{ post.published ? 'Published' : 'Draft' }}
+          </span>
+        </div>
+        <div class="post-actions">
+          <button class="view-button" (click)="viewPost(post.id)">View Post</button>
+          <button class="edit-button" (click)="editPost(post)" *ngIf="canEdit(post)">Edit Post</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div *ngIf="!loading && !error && isAdmin" class="users-section">
+    <h2>All Users</h2>
+
+    <div *ngIf="users.length === 0" class="no-users">
+      <p>No users found.</p>
+    </div>
+
+    <div *ngFor="let user of users" class="user-card">
+      <div class="user-avatar">
+        <div class="avatar-circle">{{ user.name.charAt(0).toUpperCase() }}</div>
+      </div>
+      <div class="user-info">
+        <h3 class="user-name">{{ user.name }}</h3>
+        <p class="user-email">{{ user.email }}</p>
+        <span class="user-role" [class.admin]="user.role === 'ADMIN'" [class.user]="user.role === 'USER'">
+          {{ user.role }}
+        </span>
+      </div>
+      <div class="user-actions">
+        <span class="user-id">ID: {{ user.id }}</span>
+      </div>
+    </div>
+  </div>
+</div>

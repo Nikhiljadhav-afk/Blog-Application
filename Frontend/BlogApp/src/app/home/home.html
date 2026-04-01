@@ -1,0 +1,40 @@
+<div class="home-container">
+  <header class="hero-section">
+    <h1>Welcome to Our Blog</h1>
+    <p>Discover amazing stories and insights</p>
+    <button class="create-post-btn" (click)="createPost()">Create New Post</button>
+  </header>
+
+  <div class="posts-section">
+    <h2>Latest Posts</h2>
+
+    <div *ngIf="loading" class="loading">
+      <p>Loading posts...</p>
+    </div>
+
+    <div *ngIf="error" class="error">
+      <p>{{ error }}</p>
+    </div>
+
+    <div *ngIf="!loading && !error" class="posts-grid">
+      <div *ngFor="let post of posts" class="post-card" (click)="viewPost(post.id)">
+        <div class="post-image" *ngIf="post.imageUrl">
+          <img [src]="post.imageUrl" [alt]="post.title" />
+        </div>
+        <div class="post-content">
+          <h3 class="post-title">{{ post.title }}</h3>
+          <p class="post-excerpt" style="white-space: pre-wrap;">{{ post.content | slice:0:150 }}...</p>
+          <div class="post-meta">
+            <span class="author">By User {{ post.userId }}</span>
+            <span class="category">Post ID: {{ post.id }}</span>
+            <span class="comments">Comments: {{post.commentCount}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="!loading && !error && posts.length === 0" class="no-posts">
+      <p>No posts available at the moment.</p>
+    </div>
+  </div>
+</div>

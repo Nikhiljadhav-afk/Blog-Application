@@ -1,0 +1,64 @@
+<div class="admin-dashboard-container">
+  <h1 class="title">Admin Dashboard</h1>
+
+  <div class="stats-section">
+    <div class="stat-row">
+      <div class="stat-card total">
+        <h3>Total Users</h3>
+        <p class="stat-number">{{ totalUsers }}</p>
+      </div>
+      <div class="stat-card admin">
+        <h3>Admin Users</h3>
+        <p class="stat-number">{{ adminCount }}</p>
+      </div>
+      <div class="stat-card user">
+        <h3>Regular Users</h3>
+        <p class="stat-number">{{ userCount }}</p>
+      </div>
+      <div class="stat-card author">
+        <h3>Author Users</h3>
+        <p class="stat-number">{{ authorCount }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loading">
+    <p>Loading users...</p>
+  </div>
+
+  <div *ngIf="error" class="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <div *ngIf="!loading && !error" class="users-section">
+    <h2>All Users</h2>
+    <div class="filter-buttons">
+      <button (click)="setFilter('all')" [class.active]="selectedFilter === 'all'">All Users</button>
+      <button (click)="setFilter('admin')" [class.active]="selectedFilter === 'admin'">Admins</button>
+      <button (click)="setFilter('author')" [class.active]="selectedFilter === 'author'">Authors</button>
+      <button (click)="setFilter('user')" [class.active]="selectedFilter === 'user'">Users</button>
+    </div>
+    <div class="users-list">
+      <div class="user-item header">
+        <span class="user-name">Name</span>
+        <span class="user-email">Email</span>
+        <span class="user-roles">Roles</span>
+        <span class="user-id">ID</span>
+        <span class="user-actions">Actions</span>
+      </div>
+      <div *ngFor="let user of filteredUsers" class="user-item">
+        <span class="user-name">{{ user.name }}</span>
+        <span class="user-email">{{ user.email }}</span>
+        <span class="user-roles">
+          <span class="role-badge" [ngClass]="getRoleClass(getPrimaryRole(user))">{{ getPrimaryRole(user) }}</span>
+        </span>
+        <span class="user-id">{{ user.id }}</span>
+        <span class="user-actions">
+          <button *ngIf="canUpgradeToAuthor(user)" (click)="upgradeToAuthor(user.id)" class="upgrade-btn">Upgrade to Author</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <button class="back-button" (click)="goBack()">← Back to Home</button>
+</div>
